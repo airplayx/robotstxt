@@ -18,24 +18,24 @@ import (
 )
 
 type RobotsData struct {
-	// private
-	groups      map[string]*Group
-	allowAll    bool
-	disallowAll bool
+	// public
+	Groups      map[string]*Group
+	AllowAll    bool
+	DisallowAll bool
 	Host        string
 	Sitemaps    []string
 }
 
 type Group struct {
-	rules      []*rule
+	Rules      []*Rule
 	Agent      string
 	CrawlDelay time.Duration
 }
 
-type rule struct {
-	path    string
-	allow   bool
-	pattern *regexp.Regexp
+type Rule struct {
+	Path    string
+	Allow   bool
+	Pattern *regexp.Regexp
 }
 
 type ParseError struct {
@@ -56,8 +56,8 @@ func (e ParseError) Error() string {
 	return b.String()
 }
 
-var allowAll = &RobotsData{allowAll: true}
-var disallowAll = &RobotsData{disallowAll: true}
+var allowAll = &RobotsData{AllowAll: true}
+var disallowAll = &RobotsData{DisallowAll: true}
 var emptyGroup = &Group{}
 
 func FromStatusAndBytes(statusCode int, body []byte) (*RobotsData, error) {
@@ -69,7 +69,7 @@ func FromStatusAndBytes(statusCode int, body []byte) (*RobotsData, error) {
 	//
 	// Google treats all 4xx errors in the same way and assumes that no valid
 	// robots.txt file exists. It is assumed that there are no restrictions.
-	// This is a "full allow" for crawling. Note: this includes 401
+	// This is a "full Allow" for crawling. Note: this includes 401
 	// "Unauthorized" and 403 "Forbidden" HTTP result codes.
 	case statusCode >= 400 && statusCode < 500:
 		return allowAll, nil
@@ -121,7 +121,7 @@ func FromBytes(body []byte) (r *RobotsData, err error) {
 
 	r = &RobotsData{}
 	parser := newParser(tokens)
-	r.groups, r.Host, r.Sitemaps, errs = parser.parseAll()
+	r.Groups, r.Host, r.Sitemaps, errs = parser.parseAll()
 	if len(errs) > 0 {
 		return nil, newParseError(errs)
 	}
@@ -134,14 +134,14 @@ func FromString(body string) (r *RobotsData, err error) {
 }
 
 func (r *RobotsData) TestAgent(path, agent string) bool {
-	if r.allowAll {
+	if r.AllowAll {
 		return true
 	}
-	if r.disallowAll {
+	if r.DisallowAll {
 		return false
 	}
 
-	// Find a group of rules that applies to this agent
+	// Find a group of Rules that applies to this agent
 	// From Google's spec:
 	// The user-agent is non-case-sensitive.
 	g := r.FindGroup(agent)
@@ -152,18 +152,18 @@ func (r *RobotsData) TestAgent(path, agent string) bool {
 // From Google's spec:
 // Only one group of group-member records is valid for a particular crawler.
 // The crawler must determine the correct group of records by finding the group
-// with the most specific user-agent that still matches. All other groups of
+// with the most specific user-agent that still matches. All other Groups of
 // records are ignored by the crawler. The user-agent is non-case-sensitive.
-// The order of the groups within the robots.txt file is irrelevant.
+// The order of the Groups within the robots.txt file is irrelevant.
 func (r *RobotsData) FindGroup(agent string) (ret *Group) {
 	var prefixLen int
 
 	agent = strings.ToLower(agent)
-	if ret = r.groups["*"]; ret != nil {
+	if ret = r.Groups["*"]; ret != nil {
 		// Weakest match possible
 		prefixLen = 1
 	}
-	for a, g := range r.groups {
+	for a, g := range r.Groups {
 		if a != "*" && strings.HasPrefix(agent, a) {
 			if l := len(a); l > prefixLen {
 				prefixLen = l
@@ -180,7 +180,7 @@ func (r *RobotsData) FindGroup(agent string) (ret *Group) {
 
 func (g *Group) Test(path string) bool {
 	if r := g.findRule(path); r != nil {
-		return r.allow
+		return r.Allow
 	}
 
 	// From Google's spec:
@@ -189,35 +189,35 @@ func (g *Group) Test(path string) bool {
 }
 
 // From Google's spec:
-// The path value is used as a basis to determine whether or not a rule applies
-// to a specific URL on a site. With the exception of wildcards, the path is
+// The Path value is used as a basis to determine whether or not a Rule applies
+// to a specific URL on a site. With the exception of wildcards, the Path is
 // used to match the beginning of a URL (and any valid URLs that start with the
-// same path).
+// same Path).
 //
-// At a group-member level, in particular for allow and disallow directives,
-// the most specific rule based on the length of the [path] entry will trump
-// the less specific (shorter) rule. The order of precedence for rules with
+// At a group-member level, in particular for Allow and disallow directives,
+// the most specific Rule based on the length of the [path] entry will trump
+// the less specific (shorter) Rule. The order of precedence for Rules with
 // wildcards is undefined.
-func (g *Group) findRule(path string) (ret *rule) {
+func (g *Group) findRule(path string) (ret *Rule) {
 	var prefixLen int
 
-	for _, r := range g.rules {
-		if r.pattern != nil {
-			if r.pattern.MatchString(path) {
-				// Consider this a match equal to the length of the pattern.
+	for _, r := range g.Rules {
+		if r.Pattern != nil {
+			if r.Pattern.MatchString(path) {
+				// Consider this a match equal to the length of the Pattern.
 				// From Google's spec:
-				// The order of precedence for rules with wildcards is undefined.
-				if l := len(r.pattern.String()); l > prefixLen {
+				// The order of precedence for Rules with wildcards is undefined.
+				if l := len(r.Pattern.String()); l > prefixLen {
 					prefixLen = l
 					ret = r
 				}
 			}
-		} else if r.path == "/" && prefixLen == 0 {
+		} else if r.Path == "/" && prefixLen == 0 {
 			// Weakest match possible
 			prefixLen = 1
 			ret = r
-		} else if strings.HasPrefix(path, r.path) {
-			if l := len(r.path); l > prefixLen {
+		} else if strings.HasPrefix(path, r.Path) {
+			if l := len(r.Path); l > prefixLen {
 				prefixLen = l
 				ret = r
 			}
