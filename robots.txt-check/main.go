@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/temoto/robotstxt"
+	"github.com/airplayx/robotstxt"
 )
 
 var checkPaths = []string{

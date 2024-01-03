@@ -28,7 +28,7 @@ Usage
 
 As usual, no special installation is required, just
 
-    import "github.com/temoto/robotstxt"
+    import "github.com/airplayx/robotstxt"
 
 run `go get` and you're ready.
 
@@ -111,5 +111,5 @@ Flair
 .. image:: https://codecov.io/gh/temoto/robotstxt/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/temoto/robotstxt
 
-.. image:: https://goreportcard.com/badge/github.com/temoto/robotstxt
-    :target: https://goreportcard.com/report/github.com/temoto/robotstxt
+.. image:: https://goreportcard.com/badge/github.com/airplayx/robotstxt
+    :target: https://goreportcard.com/report/github.com/airplayx/robotstxt
