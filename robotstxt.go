@@ -158,7 +158,7 @@ func (r *RobotsData) TestAgent(path, agent string) bool {
 func (r *RobotsData) FindGroup(agent string) (ret *Group) {
 	var prefixLen int
 
-	agent = strings.ToLower(agent)
+	//agent = strings.ToLower(agent)
 	if ret = r.Groups["*"]; ret != nil {
 		// Weakest match possible
 		prefixLen = 1

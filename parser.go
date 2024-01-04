@@ -208,9 +208,8 @@ func (p *parser) parseLine() (li *lineInfo, err error) {
 		// instead of "user-agent") is undefined and may be interpreted as correct
 		// directives by some user-agents.
 		// The user-agent is non-case-sensitive.
-		t2 = strings.ToLower(t2)
+		//t2 = strings.ToLower(t2)
 		return returnStringVal(lUserAgent)
-
 	case "disallow":
 		// From google's spec:
 		// When no Path is specified, the directive is ignored (so an empty Disallow
@@ -218,7 +217,7 @@ func (p *parser) parseLine() (li *lineInfo, err error) {
 		// on the other Rules in the group).
 		return returnPathVal(lDisallow)
 
-	case "Allow":
+	case "allow":
 		// From google's spec:
 		// When no Path is specified, the directive is ignored.
 		return returnPathVal(lAllow)

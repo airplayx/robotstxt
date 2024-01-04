@@ -95,7 +95,8 @@ func (s *byteScanner) scan() string {
 	tok.Reset()
 	tok.WriteRune(s.ch)
 	s.nextChar()
-	for s.ch != -1 && !s.isSpace() && !s.isEol() {
+	//for s.ch != -1 && !s.isSpace() && !s.isEol() {
+	for s.ch != -1 && !s.isEol() {
 		// Do not consider ":" to be a token separator if a first key token
 		// has already been found on this line (avoid cutting an absolute URL
 		// after the "http:")
@@ -114,9 +115,9 @@ func (s *byteScanner) scan() string {
 func (s *byteScanner) scanAll() []string {
 	results := make([]string, 0, 64) // random guess of average tokens length
 	for {
-		token := s.scan()
-		if token != "" {
-			results = append(results, token)
+		theToken := s.scan()
+		if theToken != "" {
+			results = append(results, theToken)
 		} else {
 			break
 		}
@@ -127,7 +128,7 @@ func (s *byteScanner) scanAll() []string {
 func (s *byteScanner) error(pos token.Position, msg string) {
 	s.ErrorCount++
 	if !s.Quiet {
-		fmt.Fprintf(os.Stderr, "robotstxt from %s: %s\n", pos.String(), msg)
+		_, _ = fmt.Fprintf(os.Stderr, "robotstxt from %s: %s\n", pos.String(), msg)
 	}
 }
 
